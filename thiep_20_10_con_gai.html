@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>20-10</title>
+    <style>
+        body {
+            background: linear-gradient(120deg, #f6d365 0%, #fda085 100%);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 16px;
+        }
+        /* decorative petals and confetti */
+        .decor {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .petal {
+            position: absolute;
+            width: 14px;
+            height: 20px;
+            background: radial-gradient(circle at 50% 30%, #ffd1dc 40%, #ff7aa2 100%);
+            border-radius: 10px;
+            opacity: 0.9;
+            transform: rotate(20deg);
+            animation: fall 6s linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 0.9; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+        .confetti-piece {
+            position: absolute;
+            width: 8px;
+            height: 12px;
+            background: var(--c, #ffd700);
+            opacity: 0.95;
+            transform-origin: center;
+            border-radius: 2px;
+            animation: confetti-fall 1000ms linear forwards;
+        }
+        @keyframes confetti-fall {
+            to { transform: translateY(260px) rotate(720deg); opacity: 0; }
+        }
+        .card {
+            background: #fffbe7cc;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+            padding: 30px 24px;
+            text-align: center;
+            width: 100%;
+            max-width: 460px;
+            position: relative;
+            margin: 20px auto;
+            backdrop-filter: blur(4px);
+        }
+        h1 {
+            color: #e17055;
+            margin-bottom: 16px;
+            font-size: 2.2em;
+        }
+        .flower {
+            width: 100px;
+            margin-bottom: 24px;
+        }
+        .message {
+            font-size: 1.2em;
+            color: #636e72;
+            margin-bottom: 20px;
+        }
+        .signature {
+            color: #0984e3;
+            font-style: italic;
+        }
+        .option {
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: 0;
+            background: linear-gradient(90deg,#ffe6f0,#ffd1e6);
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 160ms ease, box-shadow 160ms ease;
+            width: 100%;
+            max-width: 280px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.1em;
+            margin: 6px 0;
+        }
+        .option:active { transform: scale(0.98); }
+        #reset {
+            margin-top: 16px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            background: #74b9ff;
+            color: white;
+            cursor: pointer;
+            display: none;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+        .message {
+            font-size: 1.25em;
+            color: #2d3436;
+            margin: 16px 0;
+            min-height: 60px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: linear-gradient(180deg,#ffffffcc,#fff5f0cc);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+        .signature {
+            font-size: 1.2em;
+            margin-top: 16px;
+        }
+        #name-section {
+            margin: 24px 0;
+        }
+        #name-input {
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 2px solid #eee;
+            font-size: 1.1em;
+            width: 100%;
+            max-width: 220px;
+            margin-bottom: 12px;
+        }
+        #start-btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            background: #fd79a8;
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin-left: 8px;
+        }
+        .prompt {
+            margin: 16px 0 20px;
+            font-weight: 700;
+            color: #e17055;
+            font-size: 1.2em;
+            line-height: 1.5;
+        }
+        /* Statistics board styling */
+        #stat-board {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            padding: 16px 24px;
+            min-width: 140px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            display: none;
+            backdrop-filter: blur(4px);
+        }
+        #stat-board span {
+            display: block;
+        }
+        @media (max-width: 480px) {
+            body { padding: 12px; }
+            .card { padding: 24px 20px; }
+            h1 { font-size: 1.8em; }
+            .option { font-size: 1em; padding: 12px 16px; }
+            #name-input, #start-btn { 
+                width: 100%;
+                max-width: none;
+                margin: 8px 0;
+            }
+            #stat-board {
+                font-size: 0.95em;
+                padding: 12px 16px;
+                top: 12px;
+                left: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="decor" id="decor"></div><div id="stat-board" style="position:fixed;top:16px;left:16px;z-index:1000;background:rgba(255,255,255,0.92);border-radius:12px;box-shadow:0 2px 8px #eee;padding:12px 18px 10px 18px;min-width:120px;font-size:1em;line-height:1.5;display:none;">
+    <b>Thống kê:</b><br>
+    <span id="stat-a">A: 0</span><br>
+    <span id="stat-b">B: 0</span><br>
+    <span id="stat-c">C: 0</span><br>
+    <span id="stat-total" style="font-size:0.95em;color:#888;"></span>
+</div>
+    <div id="emoji-anim"></div>
+    <div class="card" id="card">
+        <img class="flower" src="https://img.icons8.com/color/96/000000/flower.png" alt="Hoa">
+        <h1>Chúc Mừng 20-10!</h1>
+
+        <div id="name-section" style="margin-bottom:18px;">
+            <input id="name-input" type="text" placeholder="Nhập tên của bạn..." style="padding:8px 12px;border-radius:8px;border:1px solid #eee;font-size:1em;max-width:180px;">
+            <button id="start-btn" style="padding:8px 14px;border-radius:8px;background:#fd79a8;color:white;border:none;font-weight:600;cursor:pointer;margin-left:8px;">Bắt đầu</button>
+        </div>
+
+        <div id="quiz-section" style="display:none;">
+            <div class="prompt" style="margin: 10px 0 8px; font-weight:700; color:#e17055;">
+                Câu đố 20-10: "Bạn mún gì vào 20-10 ?"<br>Chọn một trong 3 đáp án ikkkk !
+            </div>
+            <div id="options" style="display:flex;gap:10px;flex-direction:column;align-items:center;margin-bottom:18px;">
+                <button class="option" data-answer="A">A) Một món quà</button>
+                <button class="option" data-answer="B">B) Một lời chúc</button>
+                <button class="option" data-answer="C">C) Tình yêu</button>
+            </div>
+            <div class="message" id="message" aria-hidden="true"></div>
+            <button id="reset">Chọn lại</button>
+        </div>
+
+        <div class="signature">
+            — Cam —
+        </div>
+    </div>
+
+    <script>
+        // Name input logic
+        const nameSection = document.getElementById('name-section');
+        const quizSection = document.getElementById('quiz-section');
+        const nameInput = document.getElementById('name-input');
+        const startBtn = document.getElementById('start-btn');
+        let userName = '';
+
+        startBtn.addEventListener('click', () => {
+            const val = nameInput.value.trim();
+            if(val.length > 0) {
+                userName = val;
+                nameSection.style.display = 'none';
+                quizSection.style.display = '';
+            } else {
+                nameInput.focus();
+                nameInput.style.borderColor = '#fd7979';
+                setTimeout(()=>nameInput.style.borderColor='#eee', 1000);
+            }
+        });
+        nameInput.addEventListener('keydown', e => { if(e.key==='Enter') startBtn.click(); });
+
+        const card = document.getElementById('card');
+        const message = document.getElementById('message');
+        const options = Array.from(document.querySelectorAll('.option'));
+
+        // initial hidden state for the message
+        message.style.opacity = '0';
+        message.style.transition = 'opacity 300ms ease, transform 300ms ease';
+        message.style.transform = 'translateY(6px)';
+
+        function showMessage(text) {
+            message.innerHTML = text;
+            message.style.opacity = '1';
+            message.style.transform = 'translateY(0)';
+            message.setAttribute('aria-hidden', 'false');
+            // disable buttons after selection
+            options.forEach(b => b.disabled = true);
+            // show reset
+            document.getElementById('reset').style.display = 'inline-block';
+            // small card pulse
+            card.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.03)' }, { transform: 'scale(1)' }], { duration: 360 });
+            // spawn confetti
+            spawnConfetti();
+        }
+
+        // Send answer to server
+        function sendStat(answer) {
+            fetch('https://your-server-endpoint/stat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: userName, answer })
+            }).catch(()=>{});
+        }
+
+        options.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const ans = btn.getAttribute('data-answer');
+                sendStat(ans);
+                if (ans === 'A') {
+                    showMessage('20-10 bạn sẽ có một món quà nhỏ. hí hí 🎁');
+                } else if (ans === 'B') {
+                    showMessage('Một lời chúc: Chúc bạn một ngày 20-10 vui vẻ, tràn đầy năng lượng, luôn xinh xắn và cười nhiều nhé, hí hí 🌸');
+                } else if (ans === 'C') {
+                    showMessage('Quà này khó lắm à nhen 😅, mà nhìn tưởng bấm vào đây là được tỏ tình hả kk khó lắm');
+                }
+            });
+        });
+
+        document.getElementById('reset').addEventListener('click', resetQuiz);
+
+        function resetQuiz() {
+            // clear message
+            message.innerHTML = '';
+            message.style.opacity = '0';
+            message.style.transform = 'translateY(6px)';
+            message.setAttribute('aria-hidden', 'true');
+            // enable options
+            options.forEach(b => {
+                b.disabled = false;
+                b.style.left = '';
+                b.style.top = '';
+                b.style.position = '';
+            });
+            // hide reset
+            document.getElementById('reset').style.display = 'none';
+        }
+
+        function spawnConfetti() {
+            const decor = document.getElementById('decor');
+            const colors = ['#ffd166','#ef476f','#06d6a0','#118ab2','#ffd1e6','#ffe066'];
+            const pieces = 18;
+            for (let i = 0; i < pieces; i++) {
+                const el = document.createElement('div');
+                el.className = 'confetti-piece';
+                el.style.left = (50 + (Math.random()-0.5)*140) + '%';
+                el.style.top = (20 + Math.random()*10) + '%';
+                el.style.setProperty('--c', colors[Math.floor(Math.random()*colors.length)]);
+                el.style.background = `var(--c)`;
+                el.style.transform = `translateY(0) rotate(${Math.random()*360}deg)`;
+                decor.appendChild(el);
+                // remove after animation
+                setTimeout(() => el.remove(), 1200 + Math.random()*400);
+            }
+        }
+
+        // create some floating petals for background
+        (function createPetals() {
+            const decor = document.getElementById('decor');
+            for (let i = 0; i < 10; i++) {
+                const p = document.createElement('div');
+                p.className = 'petal';
+                p.style.left = Math.random()*100 + '%';
+                p.style.top = (-10 - Math.random()*20) + 'vh';
+                p.style.animationDelay = (Math.random()*4) + 's';
+                p.style.width = (10 + Math.random()*14) + 'px';
+                p.style.height = (12 + Math.random()*18) + 'px';
+                decor.appendChild(p);
+            }
+        })();
+    </script>
+    <!-- Hiển thị bảng thống kê đáp án -->
+    <script>
+        const statBoard = document.getElementById('stat-board');
+        function updateStatBoard() {
+            fetch('http://localhost:3000/stat')
+                .then(r=>r.json())
+                .then(stat=>{
+                    document.getElementById('stat-a').textContent = `A: ${stat.answers.A||0}`;
+                    document.getElementById('stat-b').textContent = `B: ${stat.answers.B||0}`;
+                    document.getElementById('stat-c').textContent = `C: ${stat.answers.C||0}`;
+                    document.getElementById('stat-total').textContent = `Tổng: ${stat.total||0}`;
+                    statBoard.style.display = 'block';
+                })
+                .catch(()=>{
+                    statBoard.style.display = 'none';
+                });
+        }
+        setInterval(updateStatBoard, 5000);
+        updateStatBoard();
+    </script>
+</body>
+</html>
